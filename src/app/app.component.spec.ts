@@ -1,36 +1,63 @@
 import { TestBed, async } from '@angular/core/testing';
+import { Component, OnInit, Input } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
+
+import { PostService } from './table/post.service';
+import { MockPostService } from './table/post.service.mock';
+
+import { By } from '@angular/platform-browser';
+
+@Component({
+  selector: 'test-app',
+  template: `<app-root></app-root>`
+})
+export class TestCmpWrapper {
+}
+
+@Component({
+  selector: 'app-table',
+  template: `<div>{{post}}</div>`
+})
+export class TestTableCmpWrapper {
+  @Input() public post: any;
+}
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule
-      ],
       declarations: [
-        AppComponent
+        AppComponent,
+        TestCmpWrapper,
+        TestTableCmpWrapper
       ],
-    }).compileComponents();
+      providers: [
+        { provide: PostService, useClass: MockPostService }
+      ],
+      imports: [
+        HttpModule
+      ]
+    }).compileComponents;
   }));
 
-  it('should create the app', async(() => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
-  }));
+  describe('check rendering', () => {
+    it('it component is rendered', () => {
+      TestBed.compileComponents().then(() => {
+        const fixture = TestBed.createComponent(TestCmpWrapper);
+        const componentInstance = fixture.componentInstance;
 
-  it(`should have as title 'app'`, async(() => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app.title).toEqual('app');
-  }));
+        fixture.detectChanges();
 
-  it('should render title in a h1 tag', async(() => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain('Welcome to app!!');
-  }));
+        const appRoot = fixture.debugElement.query(By.css('app-root')).nativeElement;
+
+        fixture.autoDetectChanges();
+
+        fixture.whenStable().then(() => {
+          const appRootAfter = fixture.debugElement.query(By.css('app-root')).nativeElement;
+        });
+      });
+    });
+  });
 });
